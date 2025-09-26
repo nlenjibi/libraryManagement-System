@@ -62,8 +62,9 @@ if ($_SESSION['RollNo']) {
                                 <li><a href="book.php"><i class="menu-icon icon-book"></i>All Books </a></li>
                                 <li><a href="addbook.php"><i class="menu-icon icon-edit"></i>Add Books </a></li>
                                 <li><a href="requests.php"><i class="menu-icon icon-tasks"></i>Issue/Return Requests </a></li>
-                                <li><a href="recommendations.php"><i class="menu-icon icon-list"></i>Book Recommendations </a></li>
+                                <li><a href="recommendations.php"><i class="menu-icon icon-list"></i>Book Requests </a></li>
                                 <li><a href="current.php"><i class="menu-icon icon-list"></i>Currently Issued Books </a></li>
+                                <li><a href="attendance_report.php"><i class="menu-icon icon-time"></i>Attendance Report </a></li>
                             </ul>
                             <ul class="widget widget-menu unstyled">
                                 <li><a href="logout.php"><i class="menu-icon icon-signout"></i>Logout </a></li>
@@ -81,9 +82,11 @@ if ($_SESSION['RollNo']) {
 
                                 <?php
                                 $rollno = $_SESSION['RollNo'];
-                                $sql="select * from LMS.user where RollNo='$rollno'";
-                                $result=$conn->query($sql);
-                                $row=$result->fetch_assoc();
+                                $sql="SELECT * FROM user WHERE RollNo=:rollno";
+                                $stmt = $conn->prepare($sql);
+                                $stmt->bindParam(':rollno', $rollno);
+                                $stmt->execute();
+                                $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
                                 $name=$row['Name'];
                                 $category=$row['Category'];

@@ -56,8 +56,9 @@ require('dbconn.php');
                                 </li>
                                 <li><a href="book.php"><i class="menu-icon icon-book"></i>All Books </a></li>
                                 <li><a href="history.php"><i class="menu-icon icon-tasks"></i>Previously Borrowed Books </a></li>
-                                <li><a href="recommendations.php"><i class="menu-icon icon-list"></i>Recommend Books </a></li>
+                                <li><a href="recommendations.php"><i class="menu-icon icon-list"></i>Book Requests </a></li>
                                 <li><a href="current.php"><i class="menu-icon icon-list"></i>Currently Issued Books </a></li>
+                                <li><a href="attendance.php"><i class="menu-icon icon-time"></i>Library Attendance </a></li>
                             </ul>
                             <ul class="widget widget-menu unstyled">
                                 <li><a href="logout.php"><i class="menu-icon icon-signout"></i>Logout </a></li>
@@ -67,40 +68,42 @@ require('dbconn.php');
                     </div>
                     <!--/.span3-->
                     <div class="span9">
-                    	<center>
-                           	<div class="card" style="width: 50%;"> 
-                    			<img class="card-img-top" src="images/profile2.png" alt="Card image cap">
-                    			<div class="card-body">
+                        <center>
+                                <div class="card" style="width: 50%;"> 
+                                        <img class="card-img-top" src="images/profile2.png" alt="Card image cap">
+                                        <div class="card-body">
 
                                 <?php
                                 $rollno = $_SESSION['RollNo'];
-                                $sql="select * from LMS.user where RollNo='$rollno'";
-                                $result=$conn->query($sql);
-                                $row=$result->fetch_assoc();
+                                $sql="SELECT * FROM user WHERE RollNo=:rollno";
+                                $stmt = $conn->prepare($sql);
+                                $stmt->bindParam(':rollno', $rollno);
+                                $stmt->execute();
+                                $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
                                 $name=$row['Name'];
                                 $category=$row['Category'];
                                 $email=$row['EmailId'];
                                 $mobno=$row['MobNo'];
                                 ?>    
-                    				<i>
-                    				<h1 class="card-title"><center><?php echo $name ?></center></h1>
-                    				<br>
-                    				<p><b>Email ID: </b><?php echo $email ?></p>
-                    				<br>
-                    				<p><b>Student ID: </B><?php echo $rollno ?></p>
-                    				<br>
-                    				<p><b>Category: </b><?php echo $category ?></p>
-                    				<br>
-                    				<p><b>Mobile number: </b><?php echo $mobno ?></p>
-                    				</b>
+                                                <i>
+                                                <h1 class="card-title"><center><?php echo $name ?></center></h1>
+                                                <br>
+                                                <p><b>Email ID: </b><?php echo $email ?></p>
+                                                <br>
+                                                <p><b>Student ID: </B><?php echo $rollno ?></p>
+                                                <br>
+                                                <p><b>Category: </b><?php echo $category ?></p>
+                                                <br>
+                                                <p><b>Mobile number: </b><?php echo $mobno ?></p>
+                                                </b>
                                 </i>
 
-                    			</div>
-                    		</div>
+                                        </div>
+                                </div>
                             <br>
                             <a href="edit_student_details.php" class="btn btn-primary">Edit Details</a>    
-      					</center>              	
+                                        </center>               
                     </div>
                     
                     <!--/.span9-->

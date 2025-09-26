@@ -71,13 +71,14 @@ try {
         FOREIGN KEY(BookId) REFERENCES book(BookId)
     )");
     
-    // New table for attendance tracking
+    // New table for attendance tracking - supports multiple sessions per day
     $conn->exec("CREATE TABLE IF NOT EXISTS attendance (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         RollNo VARCHAR(50),
         checkin_time DATETIME,
         checkout_time DATETIME,
         attendance_date DATE,
+        session_status VARCHAR(20) DEFAULT 'open',
         FOREIGN KEY(RollNo) REFERENCES user(RollNo)
     )");
     
