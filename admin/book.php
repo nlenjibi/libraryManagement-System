@@ -84,22 +84,59 @@ if ($_SESSION['RollNo']) {
                                     </form>
                                     <br>
                                     <?php
+                                    // Handle book deletion
+                                    if(isset($_POST['delete_book'])) {
+                                        $book_id = $_POST['book_id'];
+                                        
+                                        // Check if book is currently issued
+                                        $check_stmt = $conn->prepare("SELECT COUNT(*) as count FROM record WHERE BookId = :book_id AND Status = 'Issued'");
+                                        $check_stmt->bindParam(':book_id', $book_id);
+                                        $check_stmt->execute();
+                                        $issued_count = $check_stmt->fetch(PDO::FETCH_ASSOC)['count'];
+                                        
+                                        if($issued_count > 0) {
+                                            echo "<script>alert('Cannot delete book. It is currently issued to students.');</script>";
+                                        } else {
+                                            // Delete the book
+                                            $delete_stmt = $conn->prepare("DELETE FROM book WHERE BookId = :book_id");
+                                            $delete_stmt->bindParam(':book_id', $book_id);
+                                            
+                                            if($delete_stmt->execute()) {
+                                                echo "<script>alert('Book deleted successfully!'); window.location.href='book.php';</script>";
+                                            } else {
+                                                echo "<script>alert('Error deleting book. Please try again.');</script>";
+                                            }
+                                        }
+                                    }
+                                    
                                     if(isset($_POST['submit']))
                                         {$s=$_POST['title'];
-                                            $sql="select * from LMS.book where BookId='$s' or Title like '%$s%'";
+                                            $sql="SELECT * FROM book WHERE BookId=:search OR Title LIKE :title_search";
+                                            $stmt = $conn->prepare($sql);
+                                            $stmt->bindParam(':search', $s);
+                                            $title_search = "%$s%";
+                                            $stmt->bindParam(':title_search', $title_search);
+                                            $stmt->execute();
+                                            $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         }
-                                    else
-                                        $sql="select * from LMS.book";
+                                    else {
+                                        $sql="SELECT * FROM book";
+                                        $stmt = $conn->prepare($sql);
+                                        $stmt->execute();
+                                        $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                    }
 
-                                    $result=$conn->query($sql);
-                                    $rowcount=mysqli_num_rows($result);
+                                    $rowcount = count($books);
 
                                     if(!($rowcount))
                                         echo "<br><center><h2><b><i>No Results</i></b></h2></center>";
                                     else
                                     {
-
-                                    
+                                    ?>
+                                    <div class="alert alert-info">
+                                        <strong><?php echo $rowcount; ?> book(s) found</strong>
+                                    </div>
+                                    <?php
                                     ?>
                         <table class="table" id = "tables">
                                   <thead>
@@ -107,14 +144,13 @@ if ($_SESSION['RollNo']) {
                                       <th>Book id</th>
                                       <th>Book name</th>
                                       <th>Availability</th>
-                                      <th></th>
+                                      <th>Actions</th>
                                     </tr>
                                   </thead>
                                   <tbody>
                                     <?php
                             
-                            //$result=$conn->query($sql);
-                            while($row=$result->fetch_assoc())
+                            foreach($books as $row)
                             {
                                 $bookid=$row['BookId'];
                                 $name=$row['Title'];
@@ -124,11 +160,17 @@ if ($_SESSION['RollNo']) {
                             ?>
                                     <tr>
                                       <td><?php echo $bookid ?></td>
-                                      <td><?php echo $name ?></td>
+                                      <td><?php echo htmlspecialchars($name) ?></td>
                                       <td><b><?php echo $avail ?></b></td>
                                         <td><center>
-                                            <a href="bookdetails.php?id=<?php echo $bookid; ?>" class="btn btn-primary">Details</a>
-                                            <a href="edit_book_details.php?id=<?php echo $bookid; ?>" class="btn btn-success">Edit</a>
+                                            <a href="bookdetails.php?id=<?php echo $bookid; ?>" class="btn btn-primary btn-small">Details</a>
+                                            <a href="edit_book_details.php?id=<?php echo $bookid; ?>" class="btn btn-success btn-small">Edit</a>
+                                            <form method="post" style="display: inline;" onsubmit="return confirmDelete('<?php echo htmlspecialchars($name); ?>')">
+                                                <input type="hidden" name="book_id" value="<?php echo $bookid; ?>">
+                                                <button type="submit" name="delete_book" class="btn btn-danger btn-small">
+                                                    <i class="icon-trash icon-white"></i> Delete
+                                                </button>
+                                            </form>
                                         </center></td>
                                     </tr>
                                <?php }} ?>
@@ -154,6 +196,12 @@ if ($_SESSION['RollNo']) {
         <script src="scripts/flot/jquery.flot.resize.js" type="text/javascript"></script>
         <script src="scripts/datatables/jquery.dataTables.js" type="text/javascript"></script>
         <script src="scripts/common.js" type="text/javascript"></script>
+        
+        <script>
+        function confirmDelete(bookTitle) {
+            return confirm('Are you sure you want to delete the book "' + bookTitle + '"?\n\nThis action cannot be undone. The book will be permanently removed from the library system.');
+        }
+        </script>
       
     </body>
 
