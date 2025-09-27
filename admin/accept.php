@@ -38,7 +38,7 @@ try {
     $stmt3->execute([$bookid]);
 
     // Insert success message
-    $sql5 = "INSERT INTO message (RollNo, Message, Msg_Date) VALUES (?, ?, CURDATE())";
+    $sql5 = "INSERT INTO message (RollNo, Message, Msg_Date, Msg_Time) VALUES (?, ?, CURDATE(), CURTIME())";
     $stmt5 = $conn->prepare($sql5);
     $msg = "Your request for issue of BookId: $bookid has been accepted. Book issued successfully!";
     $stmt5->execute([$rollno, $msg]);

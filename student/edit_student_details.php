@@ -53,7 +53,7 @@ require('dbconn.php');
                 <div class="span3">
                     <div class="sidebar">
                         <ul class="widget widget-menu unstyled">
-                            <li class="active"><a href="index.php"><i class="menu-icon icon-home"></i>Home
+                            <li class="active"><a href="index.php"><i class="menu-icon icon-home"></i>Dashboard
                                 </a></li>
                             <li><a href="message.php"><i class="menu-icon icon-inbox"></i>Messages</a>
                             </li>

@@ -53,7 +53,7 @@ if ($_SESSION['RollNo']) {
                     <div class="span3">
                         <div class="sidebar">
                             <ul class="widget widget-menu unstyled">
-                                <li class="active"><a href="index.php"><i class="menu-icon icon-home"></i>Home
+                                <li class="active"><a href="index.php"><i class="menu-icon icon-home"></i>Dashboard
                                 </a></li>
                                  <li><a href="message.php"><i class="menu-icon icon-inbox"></i>Messages</a>
                                 </li>
@@ -79,23 +79,41 @@ if ($_SESSION['RollNo']) {
                                   </thead>
                                   <tbody>
                                     <?php
-                                    $rollno=$_SESSION['RollNo'];
-                            $sql="select * from LMS.message where RollNo='$rollno' order by Date DESC,Time DESC";
-                            $result=$conn->query($sql);
-                            while($row=$result->fetch_assoc())
-                            {
-                                $msg=$row['Msg'];
-                                $date=$row['Date'];
-                                $time=$row['Time'];
-                            
-                           
-                            ?>
-                                    <tr>
-                                      <td><?php echo $msg ?></td>
-                                      <td><?php echo $date ?></td>
-                                      <td><?php echo $time ?></td>
-                                    </tr>
-                               <?php } ?>
+                                    $rollno = $_SESSION['RollNo'];
+                                    try {
+                                        $sql = "SELECT Message, Msg_Date, Msg_Time FROM message WHERE RollNo = ? ORDER BY Msg_Date DESC, Msg_Time DESC";
+                                        $stmt = $conn->prepare($sql);
+                                        $stmt->execute([$rollno]);
+                                        $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                        
+                                        if (!empty($messages)) {
+                                            foreach ($messages as $row) {
+                                                $msg = $row['Message'];
+                                                $date = $row['Msg_Date'];
+                                                $time = $row['Msg_Time'];
+                                                ?>
+                                                <tr>
+                                                    <td><?php echo htmlspecialchars($msg) ?></td>
+                                                    <td><?php echo date('M j, Y', strtotime($date)) ?></td>
+                                                    <td><?php echo $time ? date('g:i A', strtotime($time)) : '-' ?></td>
+                                                </tr>
+                                                <?php 
+                                            }
+                                        } else {
+                                            ?>
+                                            <tr>
+                                                <td colspan="3" class="text-center text-muted">No messages found</td>
+                                            </tr>
+                                            <?php
+                                        }
+                                    } catch (PDOException $e) {
+                                        ?>
+                                        <tr>
+                                            <td colspan="3" class="text-center text-danger">Error loading messages</td>
+                                        </tr>
+                                        <?php
+                                    }
+                                    ?>
                                </tbody>
                                 </table>
                             </div>

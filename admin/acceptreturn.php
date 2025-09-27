@@ -9,6 +9,30 @@ try {
     // Start transaction
     $conn->beginTransaction();
 
+    // Check if the return request exists and is in 'Requested' status
+    $sql_check_request = "SELECT * FROM return_req WHERE BookId = ? AND RollNo = ? AND Status = 'Requested'";
+    $stmt_check = $conn->prepare($sql_check_request);
+    $stmt_check->execute([$bookid, $rollno]);
+    $return_request = $stmt_check->fetch(PDO::FETCH_ASSOC);
+
+    if (!$return_request) {
+        throw new Exception("No valid return request found or request has already been processed");
+    }
+
+    // Check if the book is currently issued to this student
+    $sql_check_issued = "SELECT * FROM record WHERE BookId = ? AND RollNo = ? AND Status = 'Issued'";
+    $stmt_issued = $conn->prepare($sql_check_issued);
+    $stmt_issued->execute([$bookid, $rollno]);
+    $issued_record = $stmt_issued->fetch(PDO::FETCH_ASSOC);
+
+    if (!$issued_record) {
+        // Book might already be returned, clean up the orphaned return request
+        $sql_cleanup = "DELETE FROM return_req WHERE BookId = ? AND RollNo = ?";
+        $stmt_cleanup = $conn->prepare($sql_cleanup);
+        $stmt_cleanup->execute([$bookid, $rollno]);
+        throw new Exception("Book is not currently issued to this student. Orphaned return request has been cleaned up.");
+    }
+
     // Get user category (though not used in current logic)
     $sql = "SELECT Category FROM user WHERE RollNo = ?";
     $stmt = $conn->prepare($sql);
@@ -22,7 +46,7 @@ try {
     $stmt1->execute([$bookid, $rollno]);
 
     if ($stmt1->rowCount() == 0) {
-        throw new Exception("No matching issued record found to return");
+        throw new Exception("Failed to update record status");
     }
 
     // Increase book availability
@@ -30,8 +54,8 @@ try {
     $stmt3 = $conn->prepare($sql3);
     $stmt3->execute([$bookid]);
 
-    // Remove from return requests table
-    $sql4 = "DELETE FROM return_req WHERE BookId = ? AND RollNo = ?";
+    // Update return request status to 'Approved' instead of deleting
+    $sql4 = "UPDATE return_req SET Status = 'Approved' WHERE BookId = ? AND RollNo = ?";
     $stmt4 = $conn->prepare($sql4);
     $stmt4->execute([$bookid, $rollno]);
 
@@ -41,7 +65,7 @@ try {
     $stmt6->execute([$bookid, $rollno]);
 
     // Insert success message
-    $sql5 = "INSERT INTO message (RollNo, Message, Msg_Date) VALUES (?, ?, CURDATE())";
+    $sql5 = "INSERT INTO message (RollNo, Message, Msg_Date, Msg_Time) VALUES (?, ?, CURDATE(), CURTIME())";
     $stmt5 = $conn->prepare($sql5);
     $msg = "Your request for return of BookId: $bookid has been accepted. Book returned successfully!";
     $stmt5->execute([$rollno, $msg]);

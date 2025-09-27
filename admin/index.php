@@ -116,40 +116,225 @@ try {
                 <!--/.span3-->
 
                 <div class="span9">
-                    <center>
-                        <div class="card" style="width: 50%;">
-                            <img class="card-img-top" src="images/profile2.png" alt="Card image cap">
-                            <div class="card-body">
+                    <div class="content">
+                        <div class="header">
+                            <h1 class="page-title">Dashboard</h1>
+                        </div>
 
-                                <?php
-                                $rollno = $_SESSION['RollNo'];
-                                $sql = "SELECT * FROM user WHERE RollNo=:rollno";
-                                $stmt = $conn->prepare($sql);
-                                $stmt->bindParam(':rollno', $rollno);
+                        <!-- Summary Cards -->
+                        <div class="row-fluid">
+                            <?php
+                            // Get statistics
+                            try {
+                                // Total Students
+                                $stmt = $conn->prepare("SELECT COUNT(*) as total FROM user WHERE Type = 'Student'");
                                 $stmt->execute();
-                                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                                $total_students = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
-                                $name = $row['Name'];
-                                $category = $row['Category'];
-                                $email = $row['EmailId'];
-                                $mobno = $row['MobNo'];
-                                ?>
-                                <i>
-                                    <h1 class="card-title">
-                                        <center><?php echo $name ?></center>
-                                    </h1>
-                                    <br>
-                                    <p><b>Email ID: </b><?php echo $email ?></p>
-                                    <br>
-                                    <p><b>Mobile number: </b><?php echo $mobno ?></p>
-                                    </b>
-                                </i>
+                                // Total Books
+                                $stmt = $conn->prepare("SELECT COUNT(*) as total FROM book");
+                                $stmt->execute();
+                                $total_books = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
+                                // Currently Issued Books (books with Status = 'Issued')
+                                $stmt = $conn->prepare("SELECT COUNT(*) as total FROM record WHERE Status = 'Issued'");
+                                $stmt->execute();
+                                $issued_books = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+
+                                // Available Books
+                                $available_books = $total_books - $issued_books;
+
+                                // Pending Return Requests
+                                $stmt = $conn->prepare("SELECT COUNT(*) as total FROM return_req WHERE Status = 'Requested'");
+                                $stmt->execute();
+                                $pending_requests = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+
+                                // Messages
+                                $stmt = $conn->prepare("SELECT COUNT(*) as total FROM message");
+                                $stmt->execute();
+                                $total_messages = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+
+                            } catch (PDOException $e) {
+                                $total_students = $total_books = $issued_books = $available_books = $pending_requests = $total_messages = 0;
+                            }
+                            ?>
+
+                            <!-- Students Card -->
+                            <div class="span4">
+                                <div class="stat-block">
+                                    <div class="stat">
+                                        <div class="stat-icon">
+                                            <i class="icon-user icon-3x" style="color: #3498db;"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <h3><?php echo $total_students; ?></h3>
+                                            <p>Total Students</p>
+                                        </div>
+                                    </div>
+                                    <div class="stat-footer">
+                                        <a href="student.php" class="btn btn-small btn-primary">View Students</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Total Books Card -->
+                            <div class="span4">
+                                <div class="stat-block">
+                                    <div class="stat">
+                                        <div class="stat-icon">
+                                            <i class="icon-book icon-3x" style="color: #2ecc71;"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <h3><?php echo $total_books; ?></h3>
+                                            <p>Total Books</p>
+                                        </div>
+                                    </div>
+                                    <div class="stat-footer">
+                                        <a href="book.php" class="btn btn-small btn-success">View Books</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Issued Books Card -->
+                            <div class="span4">
+                                <div class="stat-block">
+                                    <div class="stat">
+                                        <div class="stat-icon">
+                                            <i class="icon-list icon-3x" style="color: #f39c12;"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <h3><?php echo $issued_books; ?></h3>
+                                            <p>Currently Issued</p>
+                                        </div>
+                                    </div>
+                                    <div class="stat-footer">
+                                        <a href="current.php" class="btn btn-small btn-warning">View Issued</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <br>
-                        <a href="edit_admin_details.php" class="btn btn-primary">Edit Details</a>
-                    </center>
+
+                        <div class="row-fluid" style="margin-top: 20px;">
+                            <!-- Available Books Card -->
+                            <div class="span4">
+                                <div class="stat-block">
+                                    <div class="stat">
+                                        <div class="stat-icon">
+                                            <i class="icon-ok-circle icon-3x" style="color: #27ae60;"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <h3><?php echo max(0, $available_books); ?></h3>
+                                            <p>Available Books</p>
+                                        </div>
+                                    </div>
+                                    <div class="stat-footer">
+                                        <a href="addbook.php" class="btn btn-small btn-info">Add Books</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pending Requests Card -->
+                            <div class="span4">
+                                <div class="stat-block">
+                                    <div class="stat">
+                                        <div class="stat-icon">
+                                            <i class="icon-tasks icon-3x" style="color: #e74c3c;"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <h3><?php echo $pending_requests; ?></h3>
+                                            <p>Pending Requests</p>
+                                        </div>
+                                    </div>
+                                    <div class="stat-footer">
+                                        <a href="requests.php" class="btn btn-small btn-danger">View Requests</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Messages Card -->
+                            <div class="span4">
+                                <div class="stat-block">
+                                    <div class="stat">
+                                        <div class="stat-icon">
+                                            <i class="icon-envelope icon-3x" style="color: #9b59b6;"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <h3><?php echo $total_messages; ?></h3>
+                                            <p>Messages</p>
+                                        </div>
+                                    </div>
+                                    <div class="stat-footer">
+                                        <a href="message.php" class="btn btn-small"
+                                            style="background-color: #9b59b6; color: white;">View Messages</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity Section -->
+                        <div class="row-fluid" style="margin-top: 30px;">
+                            <div class="span12">
+                                <div class="widget">
+                                    <div class="widget-header">
+                                        <i class="icon-time"></i>
+                                        <h3>Recent Activity</h3>
+                                    </div>
+                                    <div class="widget-content">
+                                        <?php
+                                        try {
+                                            // Get recent activity (last 5 records)
+                                            $stmt = $conn->prepare("
+                                                SELECT r.*, u.Name as student_name, b.Title as book_title, b.Author as book_author 
+                                                FROM record r 
+                                                LEFT JOIN user u ON r.RollNo = u.RollNo 
+                                                LEFT JOIN book b ON r.BookId = b.BookId 
+                                                ORDER BY r.IssueDate DESC 
+                                                LIMIT 5
+                                            ");
+                                            $stmt->execute();
+                                            $recent_records = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                                            if (count($recent_records) > 0) {
+                                                echo "<table class='table table-striped table-bordered'>";
+                                                echo "<thead><tr><th>Student</th><th>Book</th><th>Status</th><th>Issue Date</th><th>Return Date</th></tr></thead>";
+                                                echo "<tbody>";
+                                                foreach ($recent_records as $record) {
+                                                    $status_class = '';
+                                                    $record_status = $record['Status'] ?? 'Unknown';
+                                                    switch ($record_status) {
+                                                        case 'Issued':
+                                                            $status_class = 'label-warning';
+                                                            break;
+                                                        case 'Returned':
+                                                            $status_class = 'label-success';
+                                                            break;
+                                                        case 'Overdue':
+                                                            $status_class = 'label-important';
+                                                            break;
+                                                        default:
+                                                            $status_class = 'label-default';
+                                                    }
+                                                    echo "<tr>";
+                                                    echo "<td>" . htmlspecialchars($record['student_name'] ?? 'N/A') . "</td>";
+                                                    echo "<td>" . htmlspecialchars($record['book_title'] ?? 'N/A') . " by " . htmlspecialchars($record['book_author'] ?? 'N/A') . "</td>";
+                                                    echo "<td><span class='label " . $status_class . "'>" . htmlspecialchars($record_status) . "</span></td>";
+                                                    echo "<td>" . date('M j, Y', strtotime($record['IssueDate'] ?? date('Y-m-d'))) . "</td>";
+                                                    echo "<td>" . ($record['ReturnDate'] ? date('M j, Y', strtotime($record['ReturnDate'])) : '-') . "</td>";
+                                                    echo "</tr>";
+                                                }
+                                                echo "</tbody></table>";
+                                            } else {
+                                                echo "<p class='text-muted'>No recent activity found.</p>";
+                                            }
+                                        } catch (PDOException $e) {
+                                            echo "<p class='text-muted'>Unable to load recent activity.</p>";
+                                        }
+                                        ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!--/.span9-->

@@ -29,6 +29,56 @@ body {
 	background: #fff;
 	color: #777
 }
+
+/* Dashboard Card Styles */
+.stat-block {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.stat-block:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.stat {
+    padding: 20px;
+    text-align: center;
+}
+
+.stat-icon {
+    margin-bottom: 15px;
+}
+
+.stat-info h3 {
+    font-size: 36px;
+    font-weight: bold;
+    margin: 0;
+    color: #333;
+}
+
+.stat-info p {
+    font-size: 14px;
+    color: #777;
+    margin: 5px 0 0 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stat-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #f0f0f0;
+    background-color: #fafafa;
+    border-radius: 0 0 6px 6px;
+}
+
+.stat-footer .btn {
+    width: 100%;
+}
 h1, h2, h3, h4, h5, h6 {
 	color: #333;
 	margin-top: 0
@@ -1129,7 +1179,7 @@ border-top-left-radius: 3px;
 	padding: 0
 }
 .stream.new-update a, .stream.load-more a {
-	background: #background: #f7f7f7;;
+	background: #f7f7f7;
 	
 	color: #555;
 	font-weight: 600;
@@ -1261,8 +1311,6 @@ border-top-left-radius: 3px;
 	font-weight: bold;
 	border: 0;
 }
-.message .table-message tbody td {
-	}
 .message .table-message tbody td.cell-check {
 	width: 20px;
 	text-align: center

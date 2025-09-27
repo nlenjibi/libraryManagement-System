@@ -52,7 +52,7 @@ if (!isset($_SESSION['RollNo'])) {
                 <div class="span3">
                     <div class="sidebar">
                         <ul class="widget widget-menu unstyled">
-                            <li><a href="index.php"><i class="menu-icon icon-home"></i>Home</a></li>
+                            <li><a href="index.php"><i class="menu-icon icon-home"></i>Dashboard</a></li>
                             <li><a href="message.php"><i class="menu-icon icon-inbox"></i>Messages</a></li>
                             <li><a href="book.php"><i class="menu-icon icon-book"></i>All Books</a></li>
                             <li><a href="history.php"><i class="menu-icon icon-tasks"></i>Previously Borrowed Books</a>
