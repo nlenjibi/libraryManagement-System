@@ -94,7 +94,7 @@ if ($_SESSION['RollNo']) {
                                     $rowcount=mysqli_num_rows($result);
 
                                     if(!($rowcount))
-                                        echo "<br><center><h2><b><i>No Results</i></b></h2></center>";
+                                        echo "<br><center><h2><b><i>No books are currently borrowed</i></b></h2></center>";
                                     else
                                     {
 

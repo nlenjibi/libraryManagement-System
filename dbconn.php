@@ -1,108 +1,48 @@
 <?php
 session_start();
 
-// Use SQLite for local development
-$db_path = 'lms_database.sqlite';
+// MySQL database configuration for XAMPP
+$db_host = 'localhost';
+$db_port = '3306';
+$db_name = 'lms_database';
+$db_user = 'root';
+$db_pass = '';
 
 try {
-    $conn = new PDO("sqlite:$db_path");
+    // Connect to the database
+    $dsn = "mysql:host=$db_host;port=$db_port;dbname=$db_name;charset=utf8";
+    $conn = new PDO($dsn, $db_user, $db_pass);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    
-    // Create tables if they don't exist
-    $conn->exec("CREATE TABLE IF NOT EXISTS user (
-        RollNo VARCHAR(50) PRIMARY KEY,
-        Name VARCHAR(50),
-        Type VARCHAR(50),
-        Category VARCHAR(50),
-        EmailId VARCHAR(50) UNIQUE,
-        MobNo INTEGER,
-        Password VARCHAR(50),
-        ProfileImage VARCHAR(255)
-    )");
-    
-    $conn->exec("CREATE TABLE IF NOT EXISTS book (
-        BookId INTEGER PRIMARY KEY AUTOINCREMENT,
-        Title VARCHAR(50),
-        Publisher VARCHAR(50),
-        Year VARCHAR(50),
-        Availability INTEGER DEFAULT 0
-    )");
-    
-    $conn->exec("CREATE TABLE IF NOT EXISTS record (
-        RollNo VARCHAR(50),
-        BookId INTEGER,
-        IssueDate DATE,
-        ReturnDate DATE,
-        Status VARCHAR(20) DEFAULT 'Issued',
-        FOREIGN KEY(RollNo) REFERENCES user(RollNo),
-        FOREIGN KEY(BookId) REFERENCES book(BookId)
-    )");
-    
-    $conn->exec("CREATE TABLE IF NOT EXISTS message (
-        ID INTEGER PRIMARY KEY AUTOINCREMENT,
-        RollNo VARCHAR(50),
-        Message TEXT,
-        Msg_Date DATE,
-        FOREIGN KEY(RollNo) REFERENCES user(RollNo)
-    )");
-    
-    $conn->exec("CREATE TABLE IF NOT EXISTS recommendations (
-        ID INTEGER PRIMARY KEY AUTOINCREMENT,
-        RollNo VARCHAR(50),
-        Title VARCHAR(100),
-        Author VARCHAR(100),
-        BookId INTEGER,
-        FOREIGN KEY(RollNo) REFERENCES user(RollNo)
-    )");
-    
-    $conn->exec("CREATE TABLE IF NOT EXISTS renew (
-        RollNo VARCHAR(50),
-        BookId INTEGER,
-        IssueDate DATE,
-        ReturnDate DATE,
-        FOREIGN KEY(RollNo) REFERENCES user(RollNo),
-        FOREIGN KEY(BookId) REFERENCES book(BookId)
-    )");
-    
-    $conn->exec("CREATE TABLE IF NOT EXISTS return_req (
-        RollNo VARCHAR(50),
-        BookId INTEGER,
-        FOREIGN KEY(RollNo) REFERENCES user(RollNo),
-        FOREIGN KEY(BookId) REFERENCES book(BookId)
-    )");
-    
-    // New table for attendance tracking - supports multiple sessions per day
-    $conn->exec("CREATE TABLE IF NOT EXISTS attendance (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        RollNo VARCHAR(50),
-        checkin_time DATETIME,
-        checkout_time DATETIME,
-        attendance_date DATE,
-        session_status VARCHAR(20) DEFAULT 'open',
-        FOREIGN KEY(RollNo) REFERENCES user(RollNo)
-    )");
-    
-    // Insert default admin user if not exists
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM user WHERE RollNo = 'ADMIN'");
+
+
+    // Quick test to see if the user table exists and is accessible
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM user LIMIT 1");
     $stmt->execute();
-    if ($stmt->fetchColumn() == 0) {
-        $conn->exec("INSERT INTO user (RollNo, Name, Type, EmailId, MobNo, Password) 
-                     VALUES ('ADMIN', 'admin', 'Admin', 'admin@gmail.com', 123456789, 'admin')");
+
+} catch (PDOException $e) {
+    // Database or table doesn't exist - redirect to setup
+    if ($e->getCode() == 1049 || strpos($e->getMessage(), 'no such table') !== false || strpos($e->getMessage(), "doesn't exist") !== false) {
+        // Redirect to setup script
+        header("Location: setup_direct.php");
+        exit();
+    } elseif (strpos($e->getMessage(), 'Connection refused') !== false) {
+        die("<div style='padding: 20px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; margin: 20px; font-family: Arial, sans-serif;'>
+             <h3>❌ MySQL Server Not Running</h3>
+             <p>Please start XAMPP MySQL service and try again.</p>
+             <p><strong>Error:</strong> " . $e->getMessage() . "</p>
+             </div>");
+    } elseif (strpos($e->getMessage(), 'Access denied') !== false) {
+        die("<div style='padding: 20px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; margin: 20px; font-family: Arial, sans-serif;'>
+             <h3>❌ Access Denied</h3>
+             <p>MySQL username or password incorrect.</p>
+             <p><strong>Error:</strong> " . $e->getMessage() . "</p>
+             </div>");
+    } else {
+        die("<div style='padding: 20px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; margin: 20px; font-family: Arial, sans-serif;'>
+             <h3>❌ Database Error</h3>
+             <p><strong>Error:</strong> " . $e->getMessage() . "</p>
+             <p><a href='setup_direct.php' style='background: #dc3545; color: white; padding: 10px; text-decoration: none; border-radius: 5px;'>Run Database Setup</a></p>
+             </div>");
     }
-    
-    // Insert some sample books if none exist
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM book");
-    $stmt->execute();
-    if ($stmt->fetchColumn() == 0) {
-        $conn->exec("INSERT INTO book (Title, Publisher, Year, Availability) VALUES 
-                     ('Operating Systems', 'PEARSON', '2006', 5),
-                     ('Database Management Systems', 'TARGET67', '2010', 3),
-                     ('Theory of Computation', 'NITC', '2018', 4),
-                     ('Data Structures and Algorithms', 'X', '2010', 10),
-                     ('Discrete Structures', 'Pearson', '2010', 8)");
-    }
-    
-} catch(PDOException $e) {
-    die("Connection failed: " . $e->getMessage());
 }
 ?>
