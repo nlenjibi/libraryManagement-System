@@ -35,11 +35,11 @@ if ($_SESSION['RollNo']) {
                             <li class="nav-user dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">
                                     <?php 
                                     $rollno = $_SESSION['RollNo'];
-                                    $sql_pic = "SELECT profile_picture FROM user WHERE RollNo = ?";
+                                    $sql_pic = "SELECT ProfilePic FROM user WHERE RollNo = ?";
                                     $stmt_pic = $conn->prepare($sql_pic);
                                     $stmt_pic->execute([$rollno]);
                                     $row_pic = $stmt_pic->fetch(PDO::FETCH_ASSOC);
-                                    $nav_profile_pic = $row_pic['profile_picture'] ?: 'images/user.png';
+                                    $nav_profile_pic = $row_pic['ProfilePic'] ?: 'images/user.png';
                                     ?>
                                     <img src="<?php echo $nav_profile_pic; ?>" class="nav-avatar" />
                                     <b class="caret"></b></a>
@@ -67,7 +67,7 @@ if ($_SESSION['RollNo']) {
                                 <li><a href="book.php"><i class="menu-icon icon-book"></i>All Books </a></li>
                                 <li><a href="addbook.php"><i class="menu-icon icon-edit"></i>Add Books </a></li>
                                 <li><a href="requests.php"><i class="menu-icon icon-tasks"></i>Issue/Return Requests </a></li>
-                                <li><a href="recommendations.php"><i class="menu-icon icon-list"></i>Book Recommendations</a></li>
+                                <li><a href="recommendations.php"><i class="menu-icon icon-list"></i>Books Requested</a></li>
                                 <li><a href="current.php"><i class="menu-icon icon-list"></i>Currently Issued Books </a></li>
                             </ul>
                             <ul class="widget widget-menu unstyled">
@@ -94,7 +94,7 @@ if ($_SESSION['RollNo']) {
                                 $email = $row['EmailId'];
                                 $mobno = $row['MobNo'];
                                 $pswd = $row['Password'];
-                                $profile_pic = $row['profile_picture'] ?: 'images/user.png';
+                                $profile_pic = $row['ProfilePic'] ?: 'images/user.png';
                                 ?>
 
                                 <!-- Profile Photo Section -->
@@ -230,7 +230,7 @@ if ($_SESSION['RollNo']) {
                     
                     if (move_uploaded_file($_FILES['profile_photo']['tmp_name'], $upload_path)) {
                         // Update database
-                        $sql = "UPDATE user SET profile_picture = ? WHERE RollNo = ?";
+                        $sql = "UPDATE user SET ProfilePic = ? WHERE RollNo = ?";
                         $stmt = $conn->prepare($sql);
                         $stmt->execute([$upload_path, $rollno]);
                         

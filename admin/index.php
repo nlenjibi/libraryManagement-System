@@ -61,11 +61,11 @@ try {
                         <li class="nav-user dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">
                                 <?php
                                 // Get user's profile picture
-                                $sql_pic = "SELECT profile_picture FROM user WHERE RollNo = ?";
+                                $sql_pic = "SELECT ProfilePic FROM user WHERE RollNo = ?";
                                 $stmt_pic = $conn->prepare($sql_pic);
                                 $stmt_pic->execute([$rollno]);
                                 $row_pic = $stmt_pic->fetch(PDO::FETCH_ASSOC);
-                                $nav_profile_pic = $row_pic['profile_picture'] ?: 'images/user.png';
+                                $nav_profile_pic = $row_pic['ProfilePic'] ?: 'images/user.png';
                                 ?>
                                 <img src="<?php echo $nav_profile_pic; ?>" class="nav-avatar"
                                     style="border-radius: 50%; object-fit: cover;" />
@@ -101,7 +101,8 @@ try {
                             <li><a href="addbook.php"><i class="menu-icon icon-edit"></i>Add Books </a></li>
                             <li><a href="requests.php"><i class="menu-icon icon-tasks"></i>Issue/Return Requests </a>
                             </li>
-                            <li><a href="recommendations.php"><i class="menu-icon icon-list"></i>Book Requests </a></li>
+                            <li><a href="recommendations.php"><i class="menu-icon icon-list"></i>Books Requested </a>
+                            </li>
                             <li><a href="current.php"><i class="menu-icon icon-list"></i>Currently Issued Books </a>
                             </li>
                             <li><a href="attendance_report.php"><i class="menu-icon icon-time"></i>Attendance Report

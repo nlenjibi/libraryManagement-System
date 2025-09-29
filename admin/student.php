@@ -65,7 +65,7 @@ if ($_SESSION['RollNo']) {
                                 <li><a href="addbook.php"><i class="menu-icon icon-edit"></i>Add Books </a></li>
                                 <li><a href="requests.php"><i class="menu-icon icon-tasks"></i>Issue/Return Requests </a>
                                 </li>
-                                <li><a href="recommendations.php"><i class="menu-icon icon-list"></i>Book Recommendations
+                                <li><a href="recommendations.php"><i class="menu-icon icon-list"></i>Books Requested
                                     </a></li>
                                 <li><a href="current.php"><i class="menu-icon icon-list"></i>Currently Issued Books </a>
                                 </li>

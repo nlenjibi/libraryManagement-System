@@ -2,12 +2,12 @@
 require('dbconn.php');
 ?>
 
-<?php 
+<?php
 if ($_SESSION['RollNo']) {
     ?>
 
-<!DOCTYPE html>
-<html lang="en">
+    <!DOCTYPE html>
+    <html lang="en">
 
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -20,6 +20,7 @@ if ($_SESSION['RollNo']) {
         <link type="text/css" href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600'
             rel='stylesheet'>
     </head>
+
     <body>
         <div class="navbar navbar-fixed-top">
             <div class="navbar-inner">
@@ -29,8 +30,18 @@ if ($_SESSION['RollNo']) {
                     <div class="nav-collapse collapse navbar-inverse-collapse">
                         <ul class="nav pull-right">
                             <li class="nav-user dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                                <img src="images/user.png" class="nav-avatar" />
-                                <b class="caret"></b></a>
+                                    <?php
+                                    // Get user's profile picture
+                                    $rollno = $_SESSION['RollNo'];
+                                    $sql_pic = "SELECT ProfilePic FROM user WHERE RollNo = ?";
+                                    $stmt_pic = $conn->prepare($sql_pic);
+                                    $stmt_pic->execute([$rollno]);
+                                    $row_pic = $stmt_pic->fetch(PDO::FETCH_ASSOC);
+                                    $nav_profile_pic = $row_pic['ProfilePic'] ?: 'images/user.png';
+                                    ?>
+                                    <img src="<?php echo $nav_profile_pic; ?>" class="nav-avatar"
+                                        style="border-radius: 50%; object-fit: cover; width: 24px; height: 24px;" />
+                                    <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     <li><a href="index.php">Your Profile</a></li>
                                     <!--li><a href="#">Edit Profile</a></li>
@@ -55,12 +66,15 @@ if ($_SESSION['RollNo']) {
                             <ul class="widget widget-menu unstyled">
                                 <li class="active"><a href="index.php"><i class="menu-icon icon-home"></i>Dashboard</a></li>
                                 </a></li>
-                                 <li><a href="message.php"><i class="menu-icon icon-inbox"></i>Messages</a>
+                                <li><a href="message.php"><i class="menu-icon icon-inbox"></i>Messages</a>
                                 </li>
                                 <li><a href="book.php"><i class="menu-icon icon-book"></i>All Books </a></li>
-                                <li><a href="history.php"><i class="menu-icon icon-tasks"></i>Previously Borrowed Books </a></li>
-                                <li><a href="recommendations.php"><i class="menu-icon icon-list"></i>Recommend Books </a></li>
-                                <li><a href="current.php"><i class="menu-icon icon-list"></i>Currently Issued Books </a></li>
+                                <li><a href="history.php"><i class="menu-icon icon-tasks"></i>Previously Borrowed Books </a>
+                                </li>
+                                <li><a href="recommendations.php"><i class="menu-icon icon-list"></i>Recommend Books </a>
+                                </li>
+                                <li><a href="current.php"><i class="menu-icon icon-list"></i>Currently Issued Books </a>
+                                </li>
                             </ul>
                             <ul class="widget widget-menu unstyled">
                                 <li><a href="logout.php"><i class="menu-icon icon-signout"></i>Logout </a></li>
@@ -69,69 +83,68 @@ if ($_SESSION['RollNo']) {
                         <!--/.sidebar-->
                     </div>
                     <!--/.span3-->
-                    
+
                     <div class="span9">
                         <div class="content">
 
-                        <div class="module">
-                            <div class="module-head">
-                                <h3>Book Details</h3>
-                            </div>
-                            <div class="module-body">
-                        <?php
-                            $x=$_GET['id'];
-                            $sql="select * from LMS.book where BookId='$x'";
-                            $result=$conn->query($sql);
-                            $row=$result->fetch_assoc();    
-                            
-                                $bookid=$row['BookId'];
-                                $name=$row['Title'];
-                                $publisher=$row['Publisher'];
-                                $year=$row['Year'];
-                                $avail=$row['Availability'];
-                                echo "<b>Book ID:</b> ".$bookid."<br><br>";
-                                echo "<b>Title:</b> ".$name."<br><br>";
-                                $sql1="select * from LMS.author where BookId='$bookid'";
-                                $result=$conn->query($sql1);
-                                
-                                echo "<b>Author:</b> ";
-                                while($row1=$result->fetch_assoc())
-                                {
-                                    echo $row1['Author']."&nbsp;";
-                                }
-                                echo "<br><br>";
-                                echo "<b>Publisher:</b> ".$publisher."<br><br>";
-                                echo "<b>Year:</b> ".$year."<br><br>";
-                                echo "<b>Availability:</b> ".$avail."<br><br>";
+                            <div class="module">
+                                <div class="module-head">
+                                    <h3>Book Details</h3>
+                                </div>
+                                <div class="module-body">
+                                    <?php
+                                    $x = $_GET['id'];
+                                    $sql = "select * from LMS.book where BookId='$x'";
+                                    $result = $conn->query($sql);
+                                    $row = $result->fetch_assoc();
 
-                                
-                        
-                           
-                            ?>
-                            
-                        <a href="book.php" class="btn btn-primary">Go Back</a>                             
-                               </div>
-                           </div>
+                                    $bookid = $row['BookId'];
+                                    $name = $row['Title'];
+                                    $publisher = $row['Publisher'];
+                                    $year = $row['Year'];
+                                    $avail = $row['Availability'];
+                                    echo "<b>Book ID:</b> " . $bookid . "<br><br>";
+                                    echo "<b>Title:</b> " . $name . "<br><br>";
+                                    $sql1 = "select * from LMS.author where BookId='$bookid'";
+                                    $result = $conn->query($sql1);
+
+                                    echo "<b>Author:</b> ";
+                                    while ($row1 = $result->fetch_assoc()) {
+                                        echo $row1['Author'] . "&nbsp;";
+                                    }
+                                    echo "<br><br>";
+                                    echo "<b>Publisher:</b> " . $publisher . "<br><br>";
+                                    echo "<b>Year:</b> " . $year . "<br><br>";
+                                    echo "<b>Availability:</b> " . $avail . "<br><br>";
+
+
+
+
+                                    ?>
+
+                                    <a href="book.php" class="btn btn-primary">Go Back</a>
+                                </div>
                             </div>
-                    <!--/.span3-->
-                    <!--/.span9-->
-                
-                    <!--/.span3-->
+                        </div>
+                        <!--/.span3-->
+                        <!--/.span9-->
+
+                        <!--/.span3-->
+                        <!--/.span9-->
+                    </div>
+
                     <!--/.span9-->
                 </div>
-                    
-                    <!--/.span9-->
-                </div>
-                    <!--/.span9-->
-                </div>
+                <!--/.span9-->
             </div>
-            <!--/.container-->
-<div class="footer">
+        </div>
+        <!--/.container-->
+        <div class="footer">
             <div class="container">
                 <b class="copyright">&copy; 2025 Library Management System </b>All rights reserved.
             </div>
         </div>
-        
+
         <!--/.wrapper-->
         <script src="scripts/jquery-1.9.1.min.js" type="text/javascript"></script>
         <script src="scripts/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>
@@ -140,12 +153,11 @@ if ($_SESSION['RollNo']) {
         <script src="scripts/flot/jquery.flot.resize.js" type="text/javascript"></script>
         <script src="scripts/datatables/jquery.dataTables.js" type="text/javascript"></script>
         <script src="scripts/common.js" type="text/javascript"></script>
-      
+
     </body>
 
-</html>
+    </html>
 
-<?php }
-else {
+<?php } else {
     echo "<script type='text/javascript'>alert('Access Denied!!!')</script>";
 } ?>

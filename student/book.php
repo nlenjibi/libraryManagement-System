@@ -30,7 +30,17 @@ if ($_SESSION['RollNo']) {
                     <div class="nav-collapse collapse navbar-inverse-collapse">
                         <ul class="nav pull-right">
                             <li class="nav-user dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                                    <img src="images/user.png" class="nav-avatar" />
+                                    <?php
+                                    // Get user's profile picture
+                                    $rollno = $_SESSION['RollNo'];
+                                    $sql_pic = "SELECT ProfilePic FROM user WHERE RollNo = ?";
+                                    $stmt_pic = $conn->prepare($sql_pic);
+                                    $stmt_pic->execute([$rollno]);
+                                    $row_pic = $stmt_pic->fetch(PDO::FETCH_ASSOC);
+                                    $nav_profile_pic = $row_pic['ProfilePic'] ?: 'images/user.png';
+                                    ?>
+                                    <img src="<?php echo $nav_profile_pic; ?>" class="nav-avatar"
+                                        style="border-radius: 50%; object-fit: cover; width: 24px; height: 24px;" />
                                     <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     <li><a href="index.php">Your Profile</a></li>
@@ -55,7 +65,7 @@ if ($_SESSION['RollNo']) {
                         <div class="sidebar">
                             <ul class="widget widget-menu unstyled">
                                 <li class="active"><a href="index.php"><i class="menu-icon icon-home"></i>Dashboard</a></li>
-                                    </a></li>
+                                </a></li>
                                 <li><a href="message.php"><i class="menu-icon icon-inbox"></i>Messages</a>
                                 </li>
                                 <li><a href="book.php"><i class="menu-icon icon-book"></i>All Books </a></li>

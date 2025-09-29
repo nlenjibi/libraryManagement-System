@@ -46,6 +46,7 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -54,8 +55,10 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
     <link type="text/css" href="bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet">
     <link type="text/css" href="css/theme.css" rel="stylesheet">
     <link type="text/css" href="images/icons/css/font-awesome.css" rel="stylesheet">
-    <link type="text/css" href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600' rel='stylesheet'>
+    <link type="text/css" href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600'
+        rel='stylesheet'>
 </head>
+
 <body>
     <div class="navbar navbar-fixed-top">
         <div class="navbar-inner">
@@ -66,8 +69,18 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
                 <div class="nav-collapse collapse navbar-inverse-collapse">
                     <ul class="nav pull-right">
                         <li class="nav-user dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                            <img src="images/user.png" class="nav-avatar" />
-                            <b class="caret"></b></a>
+                                <?php
+                                // Get user's profile picture
+                                $rollno = $_SESSION['RollNo'];
+                                $sql_pic = "SELECT ProfilePic FROM user WHERE RollNo = ?";
+                                $stmt_pic = $conn->prepare($sql_pic);
+                                $stmt_pic->execute([$rollno]);
+                                $row_pic = $stmt_pic->fetch(PDO::FETCH_ASSOC);
+                                $nav_profile_pic = $row_pic['ProfilePic'] ?: 'images/user.png';
+                                ?>
+                                <img src="<?php echo $nav_profile_pic; ?>" class="nav-avatar"
+                                    style="border-radius: 50%; object-fit: cover; width: 24px; height: 24px;" />
+                                <b class="caret"></b></a>
                             <ul class="dropdown-menu">
                                 <li><a href="index.php">Your Profile</a></li>
                                 <li class="divider"></li>
@@ -89,10 +102,12 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
                             <li><a href="index.php"><i class="menu-icon icon-home"></i>Dashboard</a></li>
                             <li><a href="message.php"><i class="menu-icon icon-inbox"></i>Messages</a></li>
                             <li><a href="book.php"><i class="menu-icon icon-book"></i>All Books</a></li>
-                            <li><a href="history.php"><i class="menu-icon icon-tasks"></i>Previously Borrowed Books</a></li>
+                            <li><a href="history.php"><i class="menu-icon icon-tasks"></i>Previously Borrowed Books</a>
+                            </li>
                             <li><a href="recommendations.php"><i class="menu-icon icon-list"></i>Book Requests</a></li>
                             <li><a href="current.php"><i class="menu-icon icon-list"></i>Currently Issued Books</a></li>
-                            <li class="active"><a href="attendance.php"><i class="menu-icon icon-time"></i>Library Attendance</a></li>
+                            <li class="active"><a href="attendance.php"><i class="menu-icon icon-time"></i>Library
+                                    Attendance</a></li>
                         </ul>
                         <ul class="widget widget-menu unstyled">
                             <li><a href="logout.php"><i class="menu-icon icon-signout"></i>Logout</a></li>
@@ -111,7 +126,8 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
                                     <div class="row-fluid">
                                         <div class="span6">
                                             <h4>Welcome, <?php echo htmlspecialchars($user['Name']); ?>!</h4>
-                                            <p><strong>Roll No:</strong> <?php echo htmlspecialchars($user['RollNo']); ?></p>
+                                            <p><strong>Roll No:</strong>
+                                                <?php echo htmlspecialchars($user['RollNo']); ?></p>
                                             <p><strong>Today's Date:</strong> <?php echo date('F j, Y'); ?></p>
                                         </div>
                                     </div>
@@ -121,10 +137,13 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
                                     <?php if ($open_session): ?>
                                         <div class="alert alert-warning">
                                             <h4>You are currently checked in</h4>
-                                            <p><strong>Check-in Time:</strong> <?php echo date('h:i A', strtotime($open_session['checkin_time'])); ?></p>
-                                            <p><strong>Status:</strong> You are currently checked in. Please remember to check out when leaving.</p>
+                                            <p><strong>Check-in Time:</strong>
+                                                <?php echo date('h:i A', strtotime($open_session['checkin_time'])); ?></p>
+                                            <p><strong>Status:</strong> You are currently checked in. Please remember to
+                                                check out when leaving.</p>
                                             <form method="post" style="margin-top: 15px;">
-                                                <button type="submit" name="checkout" class="btn btn-danger btn-large" onclick="return confirm('Are you sure you want to check out?')">
+                                                <button type="submit" name="checkout" class="btn btn-danger btn-large"
+                                                    onclick="return confirm('Are you sure you want to check out?')">
                                                     <i class="icon-sign-out"></i> Check Out
                                                 </button>
                                             </form>
@@ -141,9 +160,11 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
                                         <div class="alert alert-info">
                                             <h4>Ready to check in</h4>
                                             <?php if ($completed_sessions > 0): ?>
-                                                <p>You have completed <?php echo $completed_sessions; ?> library session(s) today. You can check in again for a new visit.</p>
+                                                <p>You have completed <?php echo $completed_sessions; ?> library session(s)
+                                                    today. You can check in again for a new visit.</p>
                                             <?php else: ?>
-                                                <p>You have not checked in today. Please check in to record your library visit.</p>
+                                                <p>You have not checked in today. Please check in to record your library visit.
+                                                </p>
                                             <?php endif; ?>
                                             <form method="post" style="margin-top: 15px;">
                                                 <button type="submit" name="checkin" class="btn btn-success btn-large">
@@ -178,7 +199,7 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
                                                     echo "<td>" . date('M j, Y', strtotime($record['attendance_date'])) . "</td>";
                                                     echo "<td>" . ($record['checkin_time'] ? date('h:i A', strtotime($record['checkin_time'])) : '-') . "</td>";
                                                     echo "<td>" . ($record['checkout_time'] ? date('h:i A', strtotime($record['checkout_time'])) : 'Still checked in') . "</td>";
-                                                    
+
                                                     if ($record['checkin_time'] && $record['checkout_time']) {
                                                         $checkin = new DateTime($record['checkin_time']);
                                                         $checkout = new DateTime($record['checkout_time']);
@@ -208,4 +229,5 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
     <script src="scripts/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>
     <script src="bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
 </body>
+
 </html>

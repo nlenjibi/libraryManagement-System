@@ -31,7 +31,17 @@ if ($_SESSION['RollNo']) {
                     <div class="nav-collapse collapse navbar-inverse-collapse">
                         <ul class="nav pull-right">
                             <li class="nav-user dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                                    <img src="images/user.png" class="nav-avatar" />
+                                    <?php
+                                    // Get user's profile picture
+                                    $rollno = $_SESSION['RollNo'];
+                                    $sql_pic = "SELECT ProfilePic FROM user WHERE RollNo = ?";
+                                    $stmt_pic = $conn->prepare($sql_pic);
+                                    $stmt_pic->execute([$rollno]);
+                                    $row_pic = $stmt_pic->fetch(PDO::FETCH_ASSOC);
+                                    $nav_profile_pic = $row_pic['ProfilePic'] ?: 'images/user.png';
+                                    ?>
+                                    <img src="<?php echo $nav_profile_pic; ?>" class="nav-avatar"
+                                        style="border-radius: 50%; object-fit: cover; width: 24px; height: 24px;" />
                                     <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     <li><a href="index.php">Your Profile</a></li>
@@ -62,7 +72,7 @@ if ($_SESSION['RollNo']) {
                                 <li><a href="book.php"><i class="menu-icon icon-book"></i>All Books </a></li>
                                 <li><a href="history.php"><i class="menu-icon icon-tasks"></i>Previously Borrowed Books </a>
                                 </li>
-                                <li><a href="recommendations.php"><i class="menu-icon icon-list"></i>Recommend Books </a>
+                                <li><a href="recommendations.php"><i class="menu-icon icon-list"></i>Books Requested </a>
                                 </li>
                                 <li><a href="current.php"><i class="menu-icon icon-list"></i>Currently Issued Books </a>
                                 </li>
@@ -89,52 +99,64 @@ if ($_SESSION['RollNo']) {
                         <br>
                         <?php
                         $rollno = $_SESSION['RollNo'];
-                        if (isset($_POST['submit'])) {
-                            $s = $_POST['title'];
-                            $sql = "select * from LMS.record,LMS.book where RollNo = '$rollno' and Date_of_Issue is NOT NULL and Date_of_Return is NOT NULL and book.Bookid = record.BookId and (record.BookId='$s' or Title like '%$s%')";
+                        try {
+                            if (isset($_POST['submit'])) {
+                                $s = $_POST['title'];
+                                $sql = "SELECT r.*, b.* FROM record r 
+                                       JOIN book b ON r.BookId = b.BookId 
+                                       WHERE r.RollNo = ? AND r.IssueDate IS NOT NULL AND r.ReturnDate IS NOT NULL 
+                                       AND r.Status = 'Returned' AND (r.BookId = ? OR b.Title LIKE ?)";
+                                $stmt = $conn->prepare($sql);
+                                $stmt->execute([$rollno, $s, "%$s%"]);
+                            } else {
+                                $sql = "SELECT r.*, b.* FROM record r 
+                                       JOIN book b ON r.BookId = b.BookId 
+                                       WHERE r.RollNo = ? AND r.IssueDate IS NOT NULL AND r.ReturnDate IS NOT NULL 
+                                       AND r.Status = 'Returned'";
+                                $stmt = $conn->prepare($sql);
+                                $stmt->execute([$rollno]);
+                            }
 
-                        } else
-                            $sql = "select * from LMS.record,LMS.book where RollNo = '$rollno' and Date_of_Issue is NOT NULL and Date_of_Return is NOT NULL and book.Bookid = record.BookId";
+                            $history_records = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                            $rowcount = count($history_records);
 
-                        $result = $conn->query($sql);
-                        $rowcount = mysqli_num_rows($result);
-
-                        if (!($rowcount))
-                            echo "<br><center><h2><b><i>No books have been borrowed previously</i></b></h2></center>";
-                        else {
-
-                            ?>
-                            <table class="table" id="tables">
-                                <thead>
-                                    <tr>
-                                        <th>Book id</th>
-                                        <th>Book name</th>
-                                        <th>Issue Date</th>
-                                        <th>Return Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-
-                                    <?php
-
-
-                                    while ($row = $result->fetch_assoc()) {
-                                        $bookid = $row['BookId'];
-                                        $name = $row['Title'];
-                                        $issuedate = $row['Date_of_Issue'];
-                                        $returndate = $row['Date_of_Return'];
-                                        ?>
-
+                            if (!$rowcount) {
+                                echo "<br><center><h2><b><i>No books have been borrowed previously</i></b></h2></center>";
+                            } else {
+                                ?>
+                                <table class="table" id="tables">
+                                    <thead>
                                         <tr>
-                                            <td><?php echo $bookid ?></td>
-                                            <td><?php echo $name ?></td>
-                                            <td><?php echo $issuedate ?></td>
-                                            <td><?php echo $returndate ?></td>
+                                            <th>Book ID</th>
+                                            <th>Book name</th>
+                                            <th>Issue Date</th>
+                                            <th>Return Date</th>
                                         </tr>
-                                    <?php }
-                        } ?>
-                            </tbody>
-                        </table>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        foreach ($history_records as $row) {
+                                            $bookid = $row['BookId'];
+                                            $name = $row['Title'];
+                                            $issuedate = $row['IssueDate'];
+                                            $returndate = $row['ReturnDate'];
+                                            ?>
+                                            <tr>
+                                                <td><?php echo htmlspecialchars($bookid) ?></td>
+                                                <td><?php echo htmlspecialchars($name) ?></td>
+                                                <td><?php echo date('M j, Y', strtotime($issuedate)) ?></td>
+                                                <td><?php echo date('M j, Y', strtotime($returndate)) ?></td>
+                                            </tr>
+                                        <?php }
+                                        ?>
+                                    </tbody>
+                                </table>
+                                <?php
+                            }
+                        } catch (PDOException $e) {
+                            echo "<br><center><h2><b><i>Error loading history: " . htmlspecialchars($e->getMessage()) . "</i></b></h2></center>";
+                        }
+                        ?>
                     </div>
                     <!--/.span9-->
                 </div>

@@ -37,7 +37,17 @@ if (!isset($_SESSION['RollNo'])) {
                                 <i class="icon-home icon-white"></i> Library Home
                             </a></li>
                         <li class="nav-user dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                                <img src="images/user.png" class="nav-avatar" />
+                                <?php
+                                // Get user's profile picture
+                                $rollno = $_SESSION['RollNo'];
+                                $sql_pic = "SELECT ProfilePic FROM user WHERE RollNo = ?";
+                                $stmt_pic = $conn->prepare($sql_pic);
+                                $stmt_pic->execute([$rollno]);
+                                $row_pic = $stmt_pic->fetch(PDO::FETCH_ASSOC);
+                                $nav_profile_pic = $row_pic['ProfilePic'] ?: 'images/user.png';
+                                ?>
+                                <img src="<?php echo $nav_profile_pic; ?>" class="nav-avatar"
+                                    style="border-radius: 50%; object-fit: cover; width: 24px; height: 24px;" />
                                 <b class="caret"></b></a>
                             <ul class="dropdown-menu">
                                 <li><a href="index.php">Your Profile</a></li>
@@ -80,46 +90,203 @@ if (!isset($_SESSION['RollNo'])) {
                 </div>
                 <!--/.span3-->
                 <div class="span9">
-                    <center>
-                        <div class="card" style="width: 50%;">
-                            <img class="card-img-top" src="<?php echo $profile_picture; ?>" alt="Profile Picture"
-                                style="width: 200px; height: 200px; object-fit: cover; border-radius: 10px;">
-                            <div class="card-body">
+                    <div class="content">
+                        <div class="header">
+                            <h1 class="page-title">Student Dashboard</h1>
+                        </div>
 
-                                <?php
-                                $rollno = $_SESSION['RollNo'];
-                                $sql = "SELECT * FROM user WHERE RollNo=:rollno";
-                                $stmt = $conn->prepare($sql);
-                                $stmt->bindParam(':rollno', $rollno);
-                                $stmt->execute();
-                                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                        <!-- Summary Cards -->
+                        <div class="row-fluid">
+                            <?php
+                            // Get student statistics
+                            $rollno = $_SESSION['RollNo'];
+                            try {
+                                // Currently Issued Books
+                                $stmt = $conn->prepare("SELECT COUNT(*) as total FROM record WHERE RollNo = ? AND Status = 'Issued'");
+                                $stmt->execute([$rollno]);
+                                $issued_books = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
-                                $name = $row['Name'];
-                                $category = $row['Category'];
-                                $email = $row['EmailId'];
-                                $mobno = $row['MobNo'];
-                                $profile_picture = $row['profile_picture'] ?? 'images/profile2.png';
-                                ?>
-                                <i>
-                                    <h1 class="card-title">
-                                        <center><?php echo $name ?></center>
-                                    </h1>
-                                    <br>
-                                    <p><b>Email ID: </b><?php echo $email ?></p>
-                                    <br>
-                                    <p><b>Student ID: </B><?php echo $rollno ?></p>
-                                    <br>
-                                    <p><b>Category: </b><?php echo $category ?></p>
-                                    <br>
-                                    <p><b>Mobile number: </b><?php echo $mobno ?></p>
-                                    </b>
-                                </i>
+                                // Messages
+                                $stmt = $conn->prepare("SELECT COUNT(*) as total FROM message WHERE RollNo = ?");
+                                $stmt->execute([$rollno]);
+                                $total_messages = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
+                                // History (Returned Books)
+                                $stmt = $conn->prepare("SELECT COUNT(*) as total FROM record WHERE RollNo = ? AND Status = 'Returned'");
+                                $stmt->execute([$rollno]);
+                                $returned_books = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+
+                                // Book Requests
+                                $stmt = $conn->prepare("SELECT COUNT(*) as total FROM recommendations WHERE RollNo = ?");
+                                $stmt->execute([$rollno]);
+                                $book_requests = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+
+                                // Pending Return Requests
+                                $stmt = $conn->prepare("SELECT COUNT(*) as total FROM return_req WHERE RollNo = ? AND Status = 'Requested'");
+                                $stmt->execute([$rollno]);
+                                $pending_returns = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+
+                                // Renewal Requests
+                                $stmt = $conn->prepare("SELECT COUNT(*) as total FROM renew WHERE RollNo = ?");
+                                $stmt->execute([$rollno]);
+                                $renewal_requests = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+
+                            } catch (PDOException $e) {
+                                $issued_books = $total_messages = $returned_books = $book_requests = $pending_returns = $renewal_requests = 0;
+                            }
+                            ?>
+
+                            <!-- Currently Issued Books Card -->
+                            <div class="span4">
+                                <div class="stat-block">
+                                    <div class="stat">
+                                        <div class="stat-icon">
+                                            <i class="icon-book icon-3x" style="color: #e74c3c;"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <h3><?php echo $issued_books; ?></h3>
+                                            <p>Currently Issued</p>
+                                        </div>
+                                    </div>
+                                    <div class="stat-footer">
+                                        <a href="current.php" class="btn btn-small btn-danger">View Books</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Messages Card -->
+                            <div class="span4">
+                                <div class="stat-block">
+                                    <div class="stat">
+                                        <div class="stat-icon">
+                                            <i class="icon-envelope icon-3x" style="color: #3498db;"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <h3><?php echo $total_messages; ?></h3>
+                                            <p>Messages</p>
+                                        </div>
+                                    </div>
+                                    <div class="stat-footer">
+                                        <a href="message.php" class="btn btn-small btn-primary">View Messages</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- History Card -->
+                            <div class="span4">
+                                <div class="stat-block">
+                                    <div class="stat">
+                                        <div class="stat-icon">
+                                            <i class="icon-time icon-3x" style="color: #2ecc71;"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <h3><?php echo $returned_books; ?></h3>
+                                            <p>Books Returned</p>
+                                        </div>
+                                    </div>
+                                    <div class="stat-footer">
+                                        <a href="history.php" class="btn btn-small btn-success">View History</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <br>
-                        <a href="edit_student_details.php" class="btn btn-primary">Edit Details</a>
-                    </center>
+
+                        <div class="row-fluid" style="margin-top: 20px;">
+                            <!-- Book Requests Card -->
+                            <div class="span4">
+                                <div class="stat-block">
+                                    <div class="stat">
+                                        <div class="stat-icon">
+                                            <i class="icon-list icon-3x" style="color: #f39c12;"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <h3><?php echo $book_requests; ?></h3>
+                                            <p>Books Requested</p>
+                                        </div>
+                                    </div>
+                                    <div class="stat-footer">
+                                        <a href="recommendations.php" class="btn btn-small btn-warning">View
+                                            Requests</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pending Returns Card -->
+                            <div class="span4">
+                                <div class="stat-block">
+                                    <div class="stat">
+                                        <div class="stat-icon">
+                                            <i class="icon-share icon-3x" style="color: #9b59b6;"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <h3><?php echo $pending_returns; ?></h3>
+                                            <p>Pending Returns</p>
+                                        </div>
+                                    </div>
+                                    <div class="stat-footer">
+                                        <a href="current.php" class="btn btn-small"
+                                            style="background-color: #9b59b6; color: white;">Check Status</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Renewals Card -->
+                            <div class="span4">
+                                <div class="stat-block">
+                                    <div class="stat">
+                                        <div class="stat-icon">
+                                            <i class="icon-refresh icon-3x" style="color: #1abc9c;"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <h3><?php echo $renewal_requests; ?></h3>
+                                            <p>Renewal Requests</p>
+                                        </div>
+                                    </div>
+                                    <div class="stat-footer">
+                                        <a href="current.php" class="btn btn-small"
+                                            style="background-color: #1abc9c; color: white;">View Status</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions Section -->
+                        <div class="row-fluid" style="margin-top: 30px;">
+                            <div class="span12">
+                                <div class="widget">
+                                    <div class="widget-header">
+                                        <i class="icon-tasks"></i>
+                                        <h3>Quick Actions</h3>
+                                    </div>
+                                    <div class="widget-content">
+                                        <div class="row-fluid">
+                                            <div class="span3">
+                                                <a href="book.php" class="btn btn-large btn-block btn-info">
+                                                    <i class="icon-search"></i><br>Browse Books
+                                                </a>
+                                            </div>
+                                            <div class="span3">
+                                                <a href="current.php" class="btn btn-large btn-block btn-danger">
+                                                    <i class="icon-book"></i><br>My Books
+                                                </a>
+                                            </div>
+                                            <div class="span3">
+                                                <a href="recommendations.php"
+                                                    class="btn btn-large btn-block btn-warning">
+                                                    <i class="icon-list"></i><br>Request Books
+                                                </a>
+                                            </div>
+                                            <div class="span3">
+                                                <a href="profile.php" class="btn btn-large btn-block btn-success">
+                                                    <i class="icon-user"></i><br>My Profile
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!--/.span9-->
